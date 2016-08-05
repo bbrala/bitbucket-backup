@@ -122,9 +122,9 @@ def update_repo(repo, backup_dir, with_wiki=False):
     if scm == 'git':
         command = 'git remote update'
 	if scm == 'git':
-		exec_cmd('git fetch --all')
-	if scm == 'git':
 		exec_cmd('git reset --hard HEAD')
+	if scm == 'git':
+		exec_cmd('git fetch --all')
 	if scm == 'git':
 		exec_cmd('git clean -f -d')
 	if scm == 'git':
