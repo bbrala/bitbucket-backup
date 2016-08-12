@@ -87,13 +87,13 @@ def clone_repo(repo, backup_dir, http, username, password, mirror=False, with_wi
     owner = repo.get('owner')
 
     owner_url = quote(owner)
-    username_url = quote(username)
-    password_url = quote(password)
+    if http and not all((username, password)):
+        exit("Cannot backup via http without username and password" % scm)
     slug_url = quote(slug)
     command = None
     if scm == 'hg':
         if http:
-            command = 'hg clone https://%s:%s@bitbucket.org/%s/%s' % (username_url, password_url, owner_url, slug_url)
+            command = 'hg clone https://%s:%s@bitbucket.org/%s/%s' % (quote(username), quote(password), owner_url, slug_url)
         else:
             command = 'hg clone ssh://hg@bitbucket.org/%s/%s' % (owner_url, slug_url)
     if scm == 'git':
@@ -101,7 +101,7 @@ def clone_repo(repo, backup_dir, http, username, password, mirror=False, with_wi
         if mirror:
             git_command = 'git clone --mirror'
         if http:
-            command = "%s https://%s:%s@bitbucket.org/%s/%s.git" % (git_command, username_url, password_url, owner_url, slug_url)
+            command = "%s https://%s:%s@bitbucket.org/%s/%s.git" % (git_command, quote(username), quote(password), owner_url, slug_url)
         else:
             command = "%s git@bitbucket.org:%s/%s.git" % (git_command, owner_url, slug_url)
     if not command:
@@ -142,6 +142,8 @@ def main():
     parser = argparse.ArgumentParser(description="Usage: %prog [options] ")
     parser.add_argument("-u", "--username", dest="username", help="Bitbucket username")
     parser.add_argument("-p", "--password", dest="password", help="Bitbucket password")
+    parser.add_argument("-k", "--oauth-key", dest="oauth_key", help="Bitbucket oauth key")
+    parser.add_argument("-s", "--oauth-secret", dest="oauth_secret", help="Bitbucket oauth secret")
     parser.add_argument("-t", "--team", dest="team", help="Bitbucket team")
     parser.add_argument("-l", "--location", dest="location", help="Local backup location")
     parser.add_argument("-v", "--verbose", action='store_true', dest="verbose", help="Verbose output of all cloning commands")
@@ -157,6 +159,8 @@ def main():
     location = args.location
     username = args.username
     password = args.password
+    oauth_key = args.oauth_key
+    oauth_secret = args.oauth_secret
     http = args.http
     max_attempts = args.attempts
     global _quiet
@@ -167,19 +171,29 @@ def main():
     _with_wiki = args.with_wiki
     if _quiet:
         _verbose = False  # override in case both are selected
-    if not username:
-        username = input('Enter bitbucket username: ')
-    owner = args.team if args.team else username
-    if not password:
-        if not args.skip_password:
-            password = getpass(prompt='Enter your bitbucket password: ')
+
+    if all((oauth_key, oauth_secret)):
+        owner = args.team if args.team else username
+    else:
+        if not username:
+            username = input('Enter bitbucket username: ')
+        owner = args.team if args.team else username
+        if not password:
+            if not args.skip_password:
+                password = getpass(prompt='Enter your bitbucket password: ')
     if not location:
         location = input('Enter local location to backup to: ')
     location = os.path.abspath(location)
 
     # ok to proceed
     try:
-        bb = bitbucket.BitBucket(username, password, _verbose)
+        bb = bitbucket.BitBucket(
+            username=username,
+            password=password,
+            oauth_key=oauth_key,
+            oauth_secret=oauth_secret,
+            verbose=_verbose,
+        )
         user = bb.user(owner)
         repos = sorted(user.repositories(), key=lambda repo: repo.get("name"))
         if not repos:
