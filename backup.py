@@ -216,7 +216,8 @@ def main():
                         update_repo(repo, backup_dir, with_wiki=_with_wiki)
                 except:
                     if attempt == max_attempts:
-                        raise MaxBackupAttemptsReached("repo [%s] is reached maximum number [%d] of backup tries" % (repo.get("name"), attempt))
+                        continue
+                        # raise MaxBackupAttemptsReached("repo [%s] is reached maximum number [%d] of backup tries" % (repo.get("name"), attempt))
                     debug("Failed to backup repository [%s], keep trying, %d attempts remain" % (repo.get("name"), max_attempts - attempt))
                 else:
                     break
