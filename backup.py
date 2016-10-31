@@ -215,7 +215,7 @@ def main():
                         update_repo(repo, backup_dir, with_wiki=_with_wiki)
                 except:
                     if attempt == max_attempts:
-                        exec_cmd("rm -rf " % backup_dir);
+                        exec_cmd("rm -rf %s " % backup_dir);
                         clone_repo(repo, backup_dir, http, username, password, mirror=_mirror, with_wiki=_with_wiki)
                         continue
                         # raise MaxBackupAttemptsReached("repo [%s] is reached maximum number [%d] of backup tries" % (repo.get("name"), attempt))
