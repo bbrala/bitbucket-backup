@@ -126,9 +126,9 @@ def update_repo(repo, backup_dir, with_wiki=False, prune=False):
     if scm == 'hg':
         command = 'hg pull -u'
     if scm == 'git':
-        command = 'git remote update && git reset --hard && git clean -f -d && git pull --all'
+        command = 'git remote update && git pull --all'
         if prune:
-            command = '%s %s' % (command, '--prune')
+            command = 'git remote update --prune && git reset --hard && git clean -f -d && git pull --all'
     if not command:
         exit("could not build command (scm [%s] not recognized?)" % scm)
     debug("Updating %s..." % repo.get('name'))
