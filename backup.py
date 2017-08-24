@@ -83,7 +83,9 @@ def compress(repo, location):
     for d in os.listdir(location):
         path = os.path.join(location, d)
         if os.path.isdir(path):
-            exec_cmd("rm -rfv %s" % path)
+            # exec_cmd("rm -rfv %s" % path)
+			exec_cmd("ping -n 5 127.0.0.1 > nul && rd /s /q %s" % path)
+
 
 
 def clone_repo(repo, backup_dir, http, username, password, mirror=False, with_wiki=False):
@@ -230,8 +232,8 @@ def main():
                         update_repo(repo, backup_dir, with_wiki=_with_wiki, prune=args.prune)
                 except:
                     if attempt == max_attempts:
-                        exec_cmd("rm -rf %s " % backup_dir);
                         os.chdir(location)
+                        exec_cmd("ping -n 5 127.0.0.1 > nul && rd /s /q %s" % backup_dir)
                         clone_repo(repo, backup_dir, http, username, password, mirror=_mirror, with_wiki=_with_wiki)
                         continue
                         # raise MaxBackupAttemptsReached("repo [%s] is reached maximum number [%d] of backup tries" % (repo.get("name"), attempt))
